@@ -1,0 +1,27 @@
+{
+  "name": "express",
+  "version": "1.0.0",
+  "description": "Primer servidor de node",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Giannying/express.git"
+  },
+  "keywords": [
+    "node",
+    "API",
+    "ITSSP"
+  ],
+  "author": "Emiliano_Favela",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Giannying/express/issues"
+  },
+  "homepage": "https://github.com/Giannying/express#readme",
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}
