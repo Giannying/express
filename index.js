@@ -4,11 +4,43 @@ const port =3000;
 app.use(express.json());
 
 app.set('view engine','ejs')
+//express
+const admin= require("firebase-admin");
+const cors= require("cors");
+app.use(cors())
+app.use(express.urlencoded({extended: true}));
+//credenciales
+let serviceAccount;
+if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY){
+    serviceAccount =JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
+}else{
+    serviceAccount=require('./firebase_key.json');
+}
 
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount)
+});
+const db=admin.firestore(); //Rutas de la API de productos
 //Indica que incie una pagina con los siguientes textos
-app.get('/inicio', (req,res)=> {
-        const productos=[
-        {
+app.get('/productos', async (req,res)=> {
+    try {
+        const items= await db.collection("productos").get();
+        const productos=items.docs.map(doc=>{
+            const data = doc.data();
+            return {
+                id: doc.id,
+                nombre: data.nombre,
+                descripcion: data.descripcion,
+                precio:data.precio,
+                image:data.image
+            };
+        });
+        res.render('inicio',{productos});
+    } catch(error){
+        res.status(500).json({error:error.message})
+    }
+ /*       const productos=[
+     {
             nombre:"Audifonos Bluetooth",
             descripcion:'Sonido de alta calidad y cancelacion de ruido',
             precio: 899.99,
@@ -46,9 +78,44 @@ app.get('/inicio', (req,res)=> {
 }
 ];
     res.render('inicio',{ productos
-    });
-});
+    });*/
 
+
+});
+app.get('/productos/add',(req,res)=>{
+    res.render('form',{producto:null,nombre:'rear productos'})
+});
+   app.post('/productos', async (req,res)=>{
+        try{
+            const { nombre,precio,descripcion,imagen}=req.body;
+            const nuevo ={
+                nombre:nombre||'',
+                precio:parseFloat(precio)||0,
+                descripcion,
+                imagen:imagen||''
+            };
+            await db.collection('productos').add(nuevo);
+            res.redirect('/productos');
+        }catch(err){
+            console.error(err);
+            res.status(500).send('Error al crear producto')
+        }
+    });
+app.delete('/api/productos/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const docRef = db.collection('productos').doc(id);
+    const doc = await docRef.get();
+    if (!doc.exists) return res.status(404).json({ error: 'Producto no encontrado' });
+    await docRef.delete();
+    res.json({ ok: true });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error.message });
+  }
+});
 app.listen(port,()=>{
     console.log('Servidor inicilizado en http://localhost:'+port+'/inicio');
 });
+
+ 
